@@ -1,0 +1,169 @@
+---
+---
+title: "Rproject"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+
+```
+
+## Slide with Plot
+
+```{r pressure}
+
+```
+```{r}
+df <- read.csv("C:/Users/nupur/Downloads/Profile of Workplace Safety and Health in the US 2.csv")
+
+#install.packages("ggplot2")
+library(ggplot2)
+
+#install.packages("plotly")
+library(plotly)
+head(df)
+```
+```{r}
+#Interactive Chart 1
+plot_ly(df,x= df$Injuries.Illnesses.2012.Rate, y=df$Rate.of.Fatalities..2012, type = "scatter", mode = "markers", size=df$Number.of.Fatalities..2012, name = df$State.or.Federal.Program, text = paste(df$State,df$Number.of.Fatalities..2012,sep=","), hoverinfo = "text") %>%
+  layout(title = " Rate of Fatalities Vs Rate of Illness",xaxis = list(title = " Rate of Illness", titlefont = list(family = "Courier New, monospace",size = 18, color = "#7f7f7f")), yaxis = list( title= "Rate of Fatalities", titlefont = list(family = "Courier New, monospace",size = 18, color = "#7f7f7f")))
+```
+```{r}
+# Interactive Chart 2 Map
+
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  lakecolor = toRGB('white')
+)
+
+
+df$hover <- with(df, paste(df$State, '<br>', "No of Fatalities", df$Number.of.Fatalities..2012,'<br>', "Rate of Fatalities", df$Rate.of.Fatalities..2012, "<br>",
+                           "No of Injuries", df$Number.of.Injuries.Illnesses.2012, '<br>',"Penalities Rank", df$Penalties.FY.2013..Rank.,
+                           "<br>", "Inspectors", df$Inspectors,'<br>',df$State.or.Federal.Program))
+
+
+plot_geo(df,locationmode = 'USA-states') %>% 
+  add_trace(z= df$State.Rank..Fatalities.2012, locations = df$Code, color = df$State.Rank..Fatalities.2012,text = df$hover, hoverinfo = "text",colors= "Spectral") %>% 
+  layout(geo = g, title = " State Rank of different states")
+
+```
+```{r}
+# Interactive Chart 3
+
+df$hover2 <- with(df, paste(df$State.Rank..Fatalities.2012))
+
+plot_ly(df, x= df$Rate.of.Fatalities..2012 ,y = df$Inspectors, type = "scatter", mode = "markers", size=df$State.Rank..Fatalities.2012,text=df$hover2,  name = df$State) %>%
+  layout(title = "No of Inspectors vs Rate of Fatalities", yaxis = list(title =" No of Inspectors"), xaxis = list(title= "Rate of Fatalities"))
+  
+```
+```{r}
+#Animation 1
+
+library(RColorBrewer)
+
+plot_ly(df,x= df$Rate.of.Fatalities..2012, y=df$Injuries.Illnesses.2012.Rate, type = "bar", frame = df$State,color = df$State,colors = brewer.pal(n=50,name= "Paired")) %>% 
+  animation_opts(transition = 0, frame =  1000, easing = "linear") %>% 
+  animation_slider( currentvalue = list(prefix = "State : " , font = list(color="Blue"))) %>%
+  layout(title = " Rate of Fatalities Vs Rate of Illness in Each State", xaxis = list(title = " Rate of Illness", titlefont = list(family = "Courier New, monospace",size = 18, color = "#7f7f7f")), yaxis = list( title= "Rate of Fatalities", titlefont = list(family = "Courier New, monospace",size = 18, color = "#7f7f7f")))
+
+```
+```{r}
+#Animation 2
+
+plot_ly(df,x= df$Penalties.FY.2013..Rank.,type= "histogram" ,frame = df$Inspectors,color = df$Code) %>%
+  animation_opts(transition = 0, frame =  1000, easing = "linear") %>%
+  layout(title=" Penalties ")
+
+```
+```{r}
+### Animation 3
+
+plot_ly(df,x= df$Inspectors,y=df$Years.to.Inspect.Each.Workplace.Once , type = "scatter",mode="markers",frame = df$State.or.Federal.Program,color = df$State.or.Federal.Program,colors = brewer.pal(n=50,name= "Paired")) %>% 
+  animation_opts(transition = 0, frame =  300, easing = "linear") %>% 
+  animation_slider( currentvalue = list(prefix = "Program:" , font = list(color="Grey"))) %>%
+  layout(title = " Inspectors Vs Years to Inspect in State or Federal Program", xaxis=list(title = "No of Inspectors"),yaxis= list(title = "Year to Inspect each Workplace"))
+
+```
+```{r}
+## Basic Charts
+
+## 1 - Bubble Chart
+
+#install.packages("packcircles")
+library(packcircles)
+#install.packages("ggplot2")
+library(ggplot2)
+
+p <- circleProgressiveLayout(df$Rate.of.Fatalities..2012)
+d <- circleLayoutVertices(p)
+bubble_chart <- ggplot(d, aes(x, y)) +
+  geom_polygon(aes(group = id, fill = id,colour="black",alpha=0.6),
+               show.legend = FALSE) +
+  geom_text(data = p, aes(x, y,size=df$Rate.of.Fatalities..2012), label = df$State) +
+  scale_fill_distiller(palette = "RdYlGn")+
+  theme_void()+theme(legend.position="none", plot.margin=unit(c(0,0,0,0),"cm") ) + 
+  coord_equal()
+
+bubble_chart
+```
+```{r}
+## 2 - Boxplot
+
+ggplot(df,aes(x=df$State.or.Federal.Program,df$Penalties.FY.2013..Average...))+geom_boxplot(aes(fill=df$State.or.Federal.Program))+ylab('Average Penalties FY 2013')+xlab('Program')+ggtitle("Penalties")
+
+```
+```{r}
+## 3 - Stacked Barplot
+
+ggplot(df, aes(fill=df$Region, y=Number.of.Fatalities..2012, x=State.or.Federal.Program)) +geom_bar( stat="identity")
+
+```
+
+title: "Rproject"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
